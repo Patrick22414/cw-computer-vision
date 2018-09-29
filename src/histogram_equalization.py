@@ -6,63 +6,80 @@ from numba import jit
 from numpy import ndarray as array
 
 
-@jit()
-def hist(im: array, MAX_L=256, density=True) -> array:
-    pdf = np.zeros([MAX_L, ], dtype=np.int)
+# Calculate the PDF of an image
+# (more accurately it's PMF)
+# @jit(cache=True)
+def im2pdf(im: array, MAX_L=256, normalize=True) -> array:
+    pdf = np.zeros([MAX_L, ])
     for pixel in im.flatten():
         pdf[pixel] += 1
-    if density:
+    if normalize:
         pdf = pdf / im.size
 
     return pdf
 
 
-# @jit
-def histeq(im: array, MAX_L=256) -> array:
-    pdf = hist(im)
+# A faster version of im2pdf using numpy.bincount
+def im2pdf_2(im: array, MAX_L=256, normalize=True) -> array:
+    pdf = np.bincount(im.flatten(), minlength=MAX_L)
+    if normalize:
+        pdf = pdf / im.size
 
+    return pdf
+
+
+# @jit(cache=True)
+def im2cdf(im: array, MAX_L=256) -> array:
+    pdf = im2pdf_2(im, MAX_L=MAX_L)
     cdf = np.zeros([MAX_L, ])
     for i in range(MAX_L):
-        cdf[i] = np.round(np.sum(pdf[0:i]) * (MAX_L - 1))
-    im_equalized = np.array(list(map(lambda x: cdf[x], im)), dtype=np.uint8)
+        cdf[i] = np.floor(np.sum(pdf[0:i]) * (MAX_L - 1))
 
-    return im_equalized
+    return cdf
+
+
+def histeq(im: array, MAX_L=256) -> array:
+    cdf = im2cdf(im, MAX_L=MAX_L)
+    im_eq = np.array(list(map(lambda x: cdf[x], im)), dtype=np.uint8)
+
+    return im_eq
 
 
 if __name__ == '__main__':
-    im: array = plt.imread('../cat.jpg')
+    im = plt.imread('images/HMS_Implacable.jpg')
 
-    t0 = time.time()
-    im_eq = histeq(im)
-    t1 = time.time()
-    im_eq = histeq(im)
-    t2 = time.time()
-    im_eq = histeq(im)
-    t3 = time.time()
+    start = time.time()
 
-    print(t1 - t0)
-    print(t2 - t1)
-    print(t3 - t2)
+    MAX_L = 256
+    color_map = 'gray' if im.ndim < 3 else None
+
+    im_eq = histeq(im, MAX_L=MAX_L)
 
     if True:
-        plt.subplot(2, 2, 1)
-        if im.ndim < 3:
-            plt.imshow(im, cmap='gray')
-        else:
-            plt.imshow(im)
+        pdf = im2pdf_2(im)
+        cdf = im2cdf(im)
 
-        plt.subplot(2, 2, 3)
-        pdf = hist(im)
-        plt.bar(np.arange(pdf.size), pdf, width=1, align='edge')
+        pdf_eq = im2pdf_2(im_eq)
+        cdf_eq = im2cdf(im_eq)
 
-        plt.subplot(2, 2, 2)
-        if im.ndim < 3:
-            plt.imshow(im_eq, cmap='gray')
-        else:
-            plt.imshow(im_eq)
+        plt.subplot(2, 3, 1)
+        plt.imshow(im, cmap=color_map)
 
-        plt.subplot(2, 2, 4)
-        pdf_eq = hist(im_eq)
-        plt.bar(np.arange(pdf_eq.size), pdf_eq, width=1, align='edge')
+        plt.subplot(2, 3, 2)
+        plt.bar(range(MAX_L), pdf, width=1)
+
+        plt.subplot(2, 3, 3)
+        plt.bar(range(MAX_L), cdf, width=1)
+
+        plt.subplot(2, 3, 4)
+        plt.imshow(im, cmap=color_map)
+
+        plt.subplot(2, 3, 5)
+        plt.bar(range(MAX_L), pdf_eq, width=1)
+
+        plt.subplot(2, 3, 6)
+        plt.bar(range(MAX_L), cdf_eq, width=1)
+
+        print(time.time() - start)
 
         plt.show()
