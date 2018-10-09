@@ -45,6 +45,26 @@ def histeq(im: array, MAX_L=256) -> array:
     return im_eq
 
 
+def histeq_regional(im: array, k_size, MAX_L=256) -> array:
+    h = im.shape[0] - im.shape[0] % k_size
+    w = im.shape[1] - im.shape[1] % k_size
+
+    if im.ndim == 2:
+        im = im[0:h, 0:w]
+        im_eq = np.zeros_like(im)
+        for i in range(0, h, k_size):
+            for j in range(0, w, k_size):
+                im_eq[i:i+k_size, j:j+k_size] = histeq(im[i:i+k_size, j:j+k_size])
+    else:
+        im = im[0:h, 0:w, :]
+        im_eq = np.zeros_like(im)
+        for i in range(0, h, k_size):
+            for j in range(0, w, k_size):
+                im_eq[i:i+k_size, j:j+k_size, :] = histeq(im[i:i+k_size, j:j+k_size, :])
+
+    return im_eq
+
+
 if __name__ == '__main__':
     im = plt.imread('images/HMS_Implacable.jpg')
 
@@ -72,7 +92,7 @@ if __name__ == '__main__':
         plt.bar(range(MAX_L), cdf, width=1)
 
         plt.subplot(2, 3, 4)
-        plt.imshow(im, cmap=color_map)
+        plt.imshow(im_eq, cmap=color_map)
 
         plt.subplot(2, 3, 5)
         plt.bar(range(MAX_L), pdf_eq, width=1)
