@@ -1,33 +1,58 @@
+import time
+
 import numpy as np
 from matplotlib import pyplot as plt
 
 
-def vec_resize(vec, size_out):
-    size_in = vec.size
-    res = np.zeros([size_out, ])
+def arr_resize(arr, new_size, axis=0):
+    if arr.dtype != np.float64:
+        arr = arr.astype(np.float64)
 
-    for i in range(size_out):
-        position = i * size_in / size_out
-        lower = int(position)
-        upper = (lower + 1) if (lower + 1) < size_in else lower
+    shape = list(arr.shape)
+    old_size = shape[axis]
+    shape[axis] = new_size
 
-        res[i] = (position - lower) * (vec[upper] - vec[lower]) + vec[lower]
+    res = np.zeros(shape)
+    for i in range(new_size):
+        pos = i * old_size / new_size
+        low = int(pos)
+        if axis == 0:
+            try:
+                vec_l = arr[low, :]
+                vec_u = arr[low + 1, :]
+                res[i, :] = (pos - low) * (vec_u - vec_l) + vec_l
+            except IndexError:
+                res[i, :] = arr[low, :]
+        elif axis == 1:
+            try:
+                vec_l = arr[:, low]
+                vec_u = arr[:, low + 1]
+                res[:, i] = (pos - low) * (vec_u - vec_l) + vec_l
+            except IndexError:
+                res[:, i] = arr[:, low]
+        else:
+            raise ValueError
 
     return res
 
 
-im = plt.imread('images/HMS_Implacable.jpg')
-h, w = im.shape
-h2, w2 = 400, 600
+def bilinear_resize(im, new_shape):
+    if im.dtype != np.float64:
+        im = im.astype(np.float64)
 
-im_intermedia = np.zeros([h, w2])
-im_resized = np.zeros([h2, w2])
-for i in range(h):
-    im_intermedia[i, :] = vec_resize(im[i, :], w2)
-for j in range(w2):
-    im_resized[:, j] = vec_resize(im_intermedia[:, j], h2)
 
-print(im.dtype)
-print(im_resized.dtype)
-plt.imshow(im_resized, cmap='gray')
-plt.show()
+
+if __name__ == '__main__':
+    im = plt.imread('images/HMS_Implacable.jpg')
+    start = time.time()
+    for _ in range(100):
+        im_resized = arr_resize(im, 400, axis=0)
+        im_resized = arr_resize(im_resized, 600, axis=1)
+    print(time.time() - start)
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(im, cmap='gray')
+    plt.subplot(1, 2, 2)
+    plt.imshow(im_resized, cmap='gray')
+
+    plt.show()

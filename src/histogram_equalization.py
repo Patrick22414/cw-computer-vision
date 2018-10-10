@@ -66,7 +66,7 @@ def histeq_regional(im: array, k_size, MAX_L=256) -> array:
 
 
 if __name__ == '__main__':
-    im = plt.imread('images/HMS_Implacable.jpg')
+    im = plt.imread('images/cat.jpg')
 
     start = time.time()
 
