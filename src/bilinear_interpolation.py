@@ -53,7 +53,7 @@ if __name__ == '__main__':
     im = plt.imread('images/cat.jpg') / 256
     start = time.time()
     # im_resized = bilinear_resize(im, [640, 960, 3])
-    for _ in range(100):
+    for _ in range(1):
         im_resized = bilinear_resize(im, [640, 960, 3])
     print(time.time() - start)
 
