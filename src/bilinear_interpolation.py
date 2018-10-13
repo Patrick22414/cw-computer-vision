@@ -1,5 +1,6 @@
 import time
 
+import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -49,14 +50,17 @@ def bilinear_resize(im, new_shape):
 
 
 if __name__ == '__main__':
-    im = plt.imread('images/HMS_Implacable.jpg') / 256
+    im = plt.imread('images/cat.jpg') / 256
     start = time.time()
-    im_resized = bilinear_resize(im, [400, 600])
+    # im_resized = bilinear_resize(im, [640, 960, 3])
+    for _ in range(100):
+        im_resized = bilinear_resize(im, [640, 960, 3])
     print(time.time() - start)
 
-    plt.subplot(1, 2, 1)
-    plt.imshow(im, cmap='gray')
-    plt.subplot(1, 2, 2)
-    plt.imshow(im_resized, cmap='gray')
+    fig, ax = plt.subplots(1, 2)
+    ax[0].imshow(im, cmap='gray')
+    ax[0].axis('off')
+    ax[1].imshow(im_resized, cmap='gray')
+    ax[1].axis('off')
 
     plt.show()

@@ -97,20 +97,25 @@ def non_local_means(im, k_size, n_size, filtering):
 
 if __name__ == '__main__':
     im = plt.imread('images/cat.jpg') / 256
-    # im = bilinear_interpolation.bilinear_resize(im, [240, 160, 3])
+    im = bilinear_interpolation.bilinear_resize(im, [240, 160, 3])
     im_noisy = white_noise(im, 0.1)
 
     start = time.time()
-    # im_nlm = non_local_means(im, 3, 7, 0.1)
+    im_nlm = non_local_means(im_noisy, 3, 7, 0.1)
     print(time.time() - start)
     start = time.time()
-    im_ski = denoise_nl_means(im_noisy, 3, 5, 0.1, multichannel=True)
+    im_ski = denoise_nl_means(im_noisy, 3, 7, 0.1, multichannel=True)
     print(time.time() - start)
 
     fig, ax = plt.subplots(1, 3)
-    ax[0].imshow(im)
-    ax[1].imshow(im_noisy)
-    # ax[1].imshow(im_nlm)
+    ax[0].imshow(im_noisy)
+    ax[0].axis('off')
+    ax[0].set_title('noisy image')
+    ax[1].imshow(im_nlm)
+    ax[1].axis('off')
+    ax[1].set_title('NLM - my method')
     ax[2].imshow(im_ski)
+    ax[2].axis('off')
+    ax[2].set_title('NLM - skimage lib')
 
     plt.show()
