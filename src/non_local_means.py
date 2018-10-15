@@ -2,32 +2,10 @@ import time
 
 import numpy as np
 from matplotlib import pyplot as plt
-from skimage.restoration import denoise_nl_means
+from skimage.restoration import denoise_nl_means, estimate_sigma
 
 import bilinear_interpolation
-
-
-def white_noise(im, scale):
-    im = im + np.random.normal(0.0, scale, im.shape)
-    im = np.maximum(im, 0.0)
-    im = np.minimum(im, 1.0)
-    return im
-
-
-def salt_and_pepper(im, prob):
-    if prob > 1 or prob < 0:
-        raise ValueError("Prob must be within 0 to 1")
-    if im.ndim == 2:
-        im = im[:, :, np.newaxis]
-
-    h, w, _ = im.shape
-    mask = np.random.rand(h, w)
-    salt = mask < (prob / 2)
-    pepper = mask > (1 - prob / 2)
-
-    im[salt, :] = 1.0
-    im[pepper, :] = 0.0
-    return im
+from add_noise import salt_and_pepper, white_noise
 
 
 def _gaussian_weight(im, p1, p2, n_size, filtering):
@@ -104,27 +82,29 @@ def non_local_means(im, k_size, n_size, filtering):
 
 
 if __name__ == '__main__':
-    im = plt.imread('images/HMS.jpg') / 256
-    im = bilinear_interpolation.bilinear_resize(im, [90, 120])
-    im_noisy = white_noise(im, 0.01)
+    im = plt.imread('images/cat.jpg') / 256
+    # im = bilinear_interpolation.bilinear_resize(im, [120, 90, 3])
+    im_noisy = white_noise(im, 0.1)
 
-    start = time.time()
-    im_nlm = non_local_means(im_noisy, 5, 3, 0.1)
-    print(time.time() - start)
+    print(estimate_sigma(im_noisy, average_sigmas=True, multichannel=True))
 
-    start = time.time()
-    im_ski = denoise_nl_means(im_noisy, 5, 3, 0.1, multichannel=True)
-    print(time.time() - start)
+    # start = time.time()
+    # im_nlm = non_local_means(im_noisy, 5, 3, 0.1)
+    # print(time.time() - start)
 
-    fig, ax = plt.subplots(1, 3)
-    ax[0].imshow(im_noisy, cmap='gray')
-    ax[0].axis('off')
-    ax[0].set_title('noisy image')
-    ax[1].imshow(im_nlm, cmap='gray')
-    ax[1].axis('off')
-    ax[1].set_title('NLM')
-    ax[2].imshow(im_ski, cmap='gray')
-    ax[2].axis('off')
-    ax[2].set_title('NLM - skimage lib')
+    # start = time.time()
+    # im_ski = denoise_nl_means(im_noisy, 5, 3, 0.1, multichannel=True)
+    # print(time.time() - start)
 
-    plt.show()
+    # fig, ax = plt.subplots(1, 3)
+    # ax[0].imshow(im_noisy, cmap='gray')
+    # ax[0].axis('off')
+    # ax[0].set_title('noisy image')
+    # ax[1].imshow(im_nlm, cmap='gray')
+    # ax[1].axis('off')
+    # ax[1].set_title('NLM - self-built')
+    # ax[2].imshow(im_ski, cmap='gray')
+    # ax[2].axis('off')
+    # ax[2].set_title('NLM - skimage lib')
+
+    # plt.show()
