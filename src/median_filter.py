@@ -40,10 +40,7 @@ def median_filter(im, k_size):
 if __name__ == '__main__':
     im = plt.imread('images/moe2d.jpg') / 256
 
-    # im = bilinear_resize(im, [240, 160, 3])
-
     im_noisy = salt_and_pepper(im, 0.1)
-    # im_noisy = white_noise(im, 0.1)
 
     im_mf = median_filter(im_noisy, 3)
 
