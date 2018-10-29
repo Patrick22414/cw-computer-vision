@@ -1,9 +1,10 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import asyncio
 import time
 
 
-def conv(im: np.ndarray, kernel: np.ndarray, pad='zero'):
+async def conv(im: np.ndarray, kernel: np.ndarray, pad='zero'):
     if kernel.shape[0] % 2 == 0 or kernel.shape[1] % 2 == 0:
         raise ValueError("Kernel must have odd number of rows and cols")
 
@@ -11,25 +12,24 @@ def conv(im: np.ndarray, kernel: np.ndarray, pad='zero'):
         raise ValueError(
             "Currently available padding method: 'none', 'zero', 'edge'")
 
-    if im.ndim == 2 and kernel.ndim == 2:
-        _conv_1c(im, kernel, pad)
+    if im.ndim == 2 and kernel.ndim == 2:  # one dimensional conv
+        await _conv_1c(im, kernel, pad)
 
-    elif im.ndim == 3 and kernel.ndim == 2:
+    elif im.ndim == 3 and kernel.ndim == 2:  # multi-dimensional conv - shared kernel
         kernel = np.stack([kernel] * im.shape[-1], axis=2)
-        _conv_mc(im, kernel, pad)
+        await _conv_mc(im, kernel, pad)
 
-    elif im.ndim == 3 and kernel.ndim == 3:
+    elif im.ndim == 3 and kernel.ndim == 3:  # multi-dimensional conv
         if im.shape[2] != kernel.shape[2]:
             raise ValueError(
                 "Image and kernel do not match in number of channels")
-        _conv_mc(im, kernel, pad)
+        await _conv_mc(im, kernel, pad)
 
     else:
-        raise ValueError(
-            "Image or kernel is not of valid number of dimensions")
+        raise ValueError("Image or kernel is not of valid ndim")
 
 
-def _conv_1c(im, kernel, pad):
+async def _conv_1c(im, kernel, pad):
     h, w = im.shape
     kh, kw = kernel.shape
 
@@ -55,7 +55,7 @@ def _conv_1c(im, kernel, pad):
     # return im_res
 
 
-def _conv_mc(im, kernel, pad):
+async def _conv_mc(im, kernel, pad):
     h, w, _ = im.shape
     kh, kw, _ = kernel.shape
 
@@ -83,9 +83,10 @@ def _conv_mc(im, kernel, pad):
     # return im_res
 
 
-if __name__ == '__main__':
+async def main():
     im = plt.imread('images/HMS.jpg') / 256
 
+    # kernels definition
     laplacian_kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]])
     laplacian_extended_kernel = np.array(
         [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
@@ -93,11 +94,18 @@ if __name__ == '__main__':
     # sobel_x_kernel = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
     # sobel_y_kernel = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
 
+    # computing
     start = time.time()
-    im_1 = conv(im, laplacian_kernel, 'zero')
-    im_2 = conv(im, laplacian_extended_kernel, 'zero')
+    await asyncio.gather(
+        conv(im, laplacian_kernel, 'zero'),
+        conv(im, laplacian_extended_kernel, 'zero')
+    )
     print(time.time() - start)
 
+if __name__ == '__main__':
+    asyncio.run(main())
+
+    # plotting
     # div_x, div_y = 2, 3
     # fig, ax = plt.subplots(div_x, div_y)
 
