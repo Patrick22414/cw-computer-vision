@@ -94,8 +94,8 @@ if __name__ == '__main__':
     # sobel_y_kernel = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
 
     start = time.time()
-    im_1 = conv(im, laplacian_kernel, 'zero')
-    im_2 = conv(im, laplacian_extended_kernel, 'zero')
+    conv(im, laplacian_kernel, 'zero')
+    conv(im, laplacian_extended_kernel, 'zero')
     print(time.time() - start)
 
     # div_x, div_y = 2, 3
