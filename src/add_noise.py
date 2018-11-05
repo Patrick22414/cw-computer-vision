@@ -23,4 +23,5 @@ def salt_and_pepper(im, prob):
 
     im_[salt, :] = 1.0
     im_[pepper, :] = 0.0
-    return im_
+
+    return np.squeeze(im_)

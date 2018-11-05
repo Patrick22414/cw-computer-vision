@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from skimage.restoration import denoise_nl_means
 
 import bilinear_interpolation
 from add_noise import salt_and_pepper, white_noise
@@ -12,15 +13,15 @@ def _gaussian_weight(im, p1, p2, n_size, filtering):
     x2, y2 = p2
 
     area1 = im[
-        (x1 - r):(x1 + r + 1),
-        (y1 - r):(y1 + r + 1),
-        :
-    ]
+            (x1 - r):(x1 + r + 1),
+            (y1 - r):(y1 + r + 1),
+            :
+            ]
     area2 = im[
-        (x2 - r):(x2 + r + 1),
-        (y2 - r):(y2 + r + 1),
-        :
-    ]
+            (x2 - r):(x2 + r + 1),
+            (y2 - r):(y2 + r + 1),
+            :
+            ]
 
     distance = np.sum(np.square(area1 - area2)) / filtering
     if distance > 7:
@@ -72,21 +73,26 @@ def non_local_means(im, k_size, n_size, filtering):
 
 
 if __name__ == '__main__':
-    im = plt.imread('images/moe2d.jpg') / 256
+    im = plt.imread('../images/box.jpg') / 256
 
+    im = bilinear_interpolation.bilinear_resize(im, [240, 160])
     im_noisy = white_noise(im, 0.1)
 
-    im_nlm = non_local_means(im_noisy, 5, 3, 1)
+    im_nlm = non_local_means(im_noisy, 5, 3, 0.5)
 
     fig, ax = plt.subplots(1, 3)
+    fig.set_size_inches(16, 8)
+    fig.set_tight_layout(True)
+    for a in ax:
+        a.axis('off')
+
     ax[0].imshow(im, cmap='gray')
-    ax[0].axis('off')
-    ax[0].set_title('Origin')
+    ax[0].set_title('Origin', fontsize=16)
+
     ax[1].imshow(im_noisy, cmap='gray')
-    ax[1].axis('off')
-    ax[1].set_title('Noisy')
+    ax[1].set_title('Noisy', fontsize=16)
+
     ax[2].imshow(im_nlm, cmap='gray')
-    ax[2].axis('off')
-    ax[2].set_title('NLM')
+    ax[2].set_title('Non-local Means', fontsize=16)
 
     plt.show()

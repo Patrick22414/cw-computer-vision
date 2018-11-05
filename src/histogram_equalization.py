@@ -1,14 +1,9 @@
-import time
-
 import numpy as np
-from matplotlib import pyplot as plt
-from numba import jit
+from matplotlib import pyplot
 from numpy import ndarray as array
 
 
-# Calculate the PDF of an image
-# (more accurately it's PMF)
-# @jit(cache=True)
+# Calculate the PDF/PMF of an image
 def im2pdf(im: array, MAX_L=256, normalize=True) -> array:
     pdf = np.zeros([MAX_L, ])
     for pixel in im.flatten():
@@ -28,7 +23,7 @@ def im2pdf_2(im: array, MAX_L=256, normalize=True) -> array:
     return pdf
 
 
-# @jit(cache=True)
+# Calculate the CDF of an image
 def im2cdf(im: array, MAX_L=256) -> array:
     pdf = im2pdf_2(im, MAX_L=MAX_L)
     cdf = np.zeros([MAX_L, ])
@@ -45,61 +40,42 @@ def histeq(im: array, MAX_L=256) -> array:
     return im_eq
 
 
-def histeq_regional(im: array, k_size, MAX_L=256) -> array:
-    h = im.shape[0] - im.shape[0] % k_size
-    w = im.shape[1] - im.shape[1] % k_size
-
-    if im.ndim == 2:
-        im = im[0:h, 0:w]
-        im_eq = np.zeros_like(im)
-        for i in range(0, h, k_size):
-            for j in range(0, w, k_size):
-                im_eq[i:i+k_size, j:j+k_size] = histeq(im[i:i+k_size, j:j+k_size])
-    else:
-        im = im[0:h, 0:w, :]
-        im_eq = np.zeros_like(im)
-        for i in range(0, h, k_size):
-            for j in range(0, w, k_size):
-                im_eq[i:i+k_size, j:j+k_size, :] = histeq(im[i:i+k_size, j:j+k_size, :])
-
-    return im_eq
-
-
 if __name__ == '__main__':
-    im = plt.imread('images/cat.jpg')
-
-    start = time.time()
-
+    im = pyplot.imread('images/cat.jpg')
     MAX_L = 256
-    color_map = 'gray' if im.ndim < 3 else None
 
     im_eq = histeq(im, MAX_L=MAX_L)
 
-    if True:
-        pdf = im2pdf_2(im)
-        cdf = im2cdf(im)
+    # get PDF, CDF of each image
+    pdf = im2pdf_2(im)
+    cdf = im2cdf(im)
 
-        pdf_eq = im2pdf_2(im_eq)
-        cdf_eq = im2cdf(im_eq)
+    pdf_eq = im2pdf_2(im_eq)
+    cdf_eq = im2cdf(im_eq)
 
-        plt.subplot(2, 3, 1)
-        plt.imshow(im, cmap=color_map)
+    # plotting
+    fig, ax = pyplot.subplots(2, 3)
+    fig.set_size_inches(12, 8)
+    fig.set_tight_layout(True)
 
-        plt.subplot(2, 3, 2)
-        plt.bar(range(MAX_L), pdf, width=1)
+    ax[0, 0].imshow(im, cmap='gray')
+    ax[0, 0].set_title('Origin')
+    ax[0, 0].axis('off')
 
-        plt.subplot(2, 3, 3)
-        plt.bar(range(MAX_L), cdf, width=1)
+    ax[0, 1].bar(range(MAX_L), pdf, width=1)
+    ax[0, 1].set_xlim([0, MAX_L-1])
 
-        plt.subplot(2, 3, 4)
-        plt.imshow(im_eq, cmap=color_map)
+    ax[0, 2].bar(range(MAX_L), cdf, width=1)
+    ax[0, 2].set_xlim([0, MAX_L-1])
 
-        plt.subplot(2, 3, 5)
-        plt.bar(range(MAX_L), pdf_eq, width=1)
+    ax[1, 0].imshow(im_eq, cmap='gray')
+    ax[1, 0].set_title('Histogram equalized')
+    ax[1, 0].axis('off')
 
-        plt.subplot(2, 3, 6)
-        plt.bar(range(MAX_L), cdf_eq, width=1)
+    ax[1, 1].bar(range(MAX_L), pdf_eq, width=1)
+    ax[1, 1].set_xlim([0, MAX_L-1])
 
-        print(time.time() - start)
+    ax[1, 2].bar(range(MAX_L), cdf_eq, width=1)
+    ax[1, 2].set_xlim([0, MAX_L-1])
 
-        plt.show()
+    pyplot.show()
