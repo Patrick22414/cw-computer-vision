@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot
 
 if __name__ == '__main__':
-    filename = '../images/box.jpg'
+    filename = 'images/box.jpg'
     im = pyplot.imread(filename) / 256
 
     im_02 = np.power(im, 0.2)

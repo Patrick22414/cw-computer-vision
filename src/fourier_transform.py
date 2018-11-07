@@ -1,6 +1,5 @@
 import numpy as np
 from matplotlib import pyplot
-from PIL import Image
 
 
 def dft_2d(im: np.ndarray):
@@ -42,11 +41,6 @@ def dft_2d_by_1d(im: np.ndarray):
 
 if __name__ == '__main__':
     im = pyplot.imread('../images/zebra_line.jpg') / 256
-
-    # rotate image
-    # img = Image.fromarray(im)
-    # img = img.rotate(35, resample=Image.BICUBIC, expand=True)
-    # im = np.array(img)
 
     # shift fourier transform
     im_s = im.copy()
