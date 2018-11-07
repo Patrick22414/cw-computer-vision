@@ -6,7 +6,7 @@ from scipy.signal import convolve2d
 matplotlib.use('agg')
 
 if __name__ == '__main__':
-    file = 'results/mix.png'
+    file = 'images/histeq.png'
 
     img = Image.open(file)
     img = img.convert('L')
@@ -18,4 +18,4 @@ if __name__ == '__main__':
     # im = convolve2d(im, kernel, mode='same').astype(np.uint8)
 
     # img = Image.fromarray(im)
-    img.save('results/mix.jpg')
+    img.save('results/histeq.jpg')

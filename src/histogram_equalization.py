@@ -1,10 +1,9 @@
 import numpy as np
 from matplotlib import pyplot
-from numpy import ndarray as array
 
 
 # Calculate the PDF/PMF of an image
-def im2pdf(im: array, MAX_L=256, normalize=True) -> array:
+def im2pdf(im, MAX_L=256, normalize=True):
     pdf = np.zeros([MAX_L, ])
     for pixel in im.flatten():
         pdf[pixel] += 1
@@ -15,7 +14,7 @@ def im2pdf(im: array, MAX_L=256, normalize=True) -> array:
 
 
 # A faster version of im2pdf using numpy.bincount
-def im2pdf_2(im: array, MAX_L=256, normalize=True) -> array:
+def im2pdf_2(im, MAX_L=256, normalize=True):
     pdf = np.bincount(im.flatten(), minlength=MAX_L)
     if normalize:
         pdf = pdf / im.size
@@ -24,7 +23,7 @@ def im2pdf_2(im: array, MAX_L=256, normalize=True) -> array:
 
 
 # Calculate the CDF of an image
-def im2cdf(im: array, MAX_L=256) -> array:
+def im2cdf(im, MAX_L=256):
     pdf = im2pdf_2(im, MAX_L=MAX_L)
     cdf = np.zeros([MAX_L, ])
     for i in range(MAX_L):
@@ -33,7 +32,7 @@ def im2cdf(im: array, MAX_L=256) -> array:
     return cdf
 
 
-def histeq(im: array, MAX_L=256) -> array:
+def histeq(im, MAX_L=256):
     cdf = im2cdf(im, MAX_L=MAX_L)
     im_eq = np.array(list(map(lambda x: cdf[x], im)), dtype=np.uint8)
 
@@ -60,7 +59,8 @@ if __name__ == '__main__':
 
     ax[0, 0].imshow(im, cmap='gray')
     ax[0, 0].set_title('Origin')
-    ax[0, 0].axis('off')
+    ax[0, 0].get_xaxis().set_visible(False)
+    ax[0, 0].get_yaxis().set_visible(False)
 
     ax[0, 1].bar(range(MAX_L), pdf, width=1)
     ax[0, 1].set_xlim([0, MAX_L-1])
@@ -70,7 +70,8 @@ if __name__ == '__main__':
 
     ax[1, 0].imshow(im_eq, cmap='gray')
     ax[1, 0].set_title('Histogram equalized')
-    ax[1, 0].axis('off')
+    ax[1, 0].get_xaxis().set_visible(False)
+    ax[1, 0].get_yaxis().set_visible(False)
 
     ax[1, 1].bar(range(MAX_L), pdf_eq, width=1)
     ax[1, 1].set_xlim([0, MAX_L-1])
